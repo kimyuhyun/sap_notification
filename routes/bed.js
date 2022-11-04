@@ -7,6 +7,7 @@ const utils = require('../Utils');
 const moment = require('moment');
 const axios = require('axios');
 const qs = require('qs');
+const { log } = require('console');
 
 async function setLog(req, res, next) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -78,16 +79,76 @@ async function setLog(req, res, next) {
 
 
 
-router.get('/', setLog, async function(req, res, next) {
 
-    // var sql = ``;
-    // var params = [];
-    // var arr = await utils.queryResult(sql, params);
-    // console.log(arr);
+router.get('/get_building', setLog, async function(req, res, next) {
+    var sql = `SELECT * FROM CODES_tbl WHERE LENGTH(code1) = 2 ORDER BY sort1 ASC`;
+    var arr = await utils.queryResult(sql, []);
+    
+    var list = [];
+    for (row of arr) {
+        row.view_type = 0;
+        list.push(row);
 
-    res.send('api');
+        var sql2 = `SELECT * FROM CODES_tbl WHERE LEFT(code1, 2) = ? AND LENGTH(code1) = 4 ORDER BY sort1 ASC`;
+        var arr2 = await utils.queryResult(sql2, [row.code1]);
+        for (row2 of arr2) {
+            row2.view_type = 1;
+            list.push(row2);
+        }
+    }
+
+    res.send(list);
 });
 
+router.get('/get_rooms/:code1', setLog, async function(req, res, next) {
+    const code1 = req.params.code1;
 
+    var sql = `SELECT * FROM CODES_tbl WHERE LEFT(code1, 4) = ? AND LENGTH(code1) = 6 ORDER BY sort1 ASC`;
+    var arr = await utils.queryResult(sql, [code1]);
+    res.send(arr);
+});
+
+router.get('/get_beds/:code1', setLog, async function(req, res, next) {
+    const code1 = req.params.code1;
+
+    var sql = `SELECT * FROM CODES_tbl WHERE LEFT(code1, 6) = ? AND LENGTH(code1) = 8 ORDER BY sort1 ASC`;
+    var arr = await utils.queryResult(sql, [code1]);
+
+    for (row of arr) {
+        sql = `SELECT * FROM PATIENT_tbl WHERE bed_code = ? `;
+        var arr2 = await utils.queryResult(sql, [row.code1]);
+        var obj2 = arr2[0];
+        if (obj2) {
+            row.patient_name = obj2.name1;
+            row.patient_gender = obj2.gender == 1 ? '남' : '여';
+            row.patient_age = utils.getAge(obj2.byear) + '세';
+            row.patient_num = obj2.patient_num;
+            row.per = eval(obj2.cur_cc) / eval(obj2.all_cc) * 100;
+            row.bed_code = obj2.bed_code;
+        }
+    }
+
+    res.send(arr);
+});
+
+router.get('/get_sap_detail/:code1', setLog, async function(req, res, next) {
+    const code1 = req.params.code1;
+
+    var sql = `SELECT * FROM PATIENT_tbl WHERE bed_code = ?`;
+    var arr = await utils.queryResult(sql, [code1]);
+    var obj = arr[0];
+    res.send({
+        idx: obj.idx,
+        bed_code: obj.bed_code,
+        name1: obj.name1,
+        gender: obj.gender == 1 ? '남' : '여',
+        age: utils.getAge(obj.byear) + '세',
+        patient_num: obj.patient_num,
+        cur_cc: obj.cur_cc,
+        all_cc: obj.all_cc,
+        per: eval(obj.cur_cc) / eval(obj.all_cc) * 100,
+        memo: obj.memo
+    });
+});
 
 module.exports = router;

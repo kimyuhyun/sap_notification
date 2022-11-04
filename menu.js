@@ -24,6 +24,15 @@ const menu = [{
         ]
     },
     {
+        "title": "환자",
+        "child": [
+            {
+                "title": "환자관리",
+                "link": "/patient/1"
+            },
+        ]
+    },
+    {
         "title": "게시판",
         "child": [
             {
@@ -34,10 +43,10 @@ const menu = [{
                 "title": "고객센터",
                 "link": "/adm/board/cscenter/1"
             },
-            {
-                "title": "신고",
-                "link": "/adm/board/singo/1"
-            },
+            // {
+            //     "title": "신고",
+            //     "link": "/adm/board/singo/1"
+            // },
         ]
     },
     {

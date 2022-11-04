@@ -77,4 +77,24 @@ async function setLog(req, res, next) {
 }
 
 
+router.get('/get_alarms/:id', setLog, async function(req, res, next) {
+    const id = req.params.id;
+
+    var sql = `SELECT * FROM ALARM_tbl WHERE target_id = ?`;
+    var params = [id];
+    var arr = await utils.queryResult(sql, params);
+    
+    res.send(arr);
+});
+
+router.get('/set_alarm_read/:idx', setLog, async function(req, res, next) {
+    const idx = req.params.idx;
+
+    var sql = `UPDATE ALARM_tbl SET is_read = 1 WHERE idx = ?`;
+    var params = [idx];
+    var arr = await utils.queryResult(sql, params);
+    
+    res.send(arr);
+});
+
 module.exports = router;

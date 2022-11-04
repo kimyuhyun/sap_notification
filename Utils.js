@@ -114,6 +114,12 @@ class Utils {
         }
         return postTime;
     }
+
+    getAge(byear) {
+        var y = new Date().getFullYear();
+        var age = y - byear;
+        return age;
+    }
 }
 
 module.exports = new Utils();

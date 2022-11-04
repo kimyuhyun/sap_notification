@@ -5,6 +5,7 @@ const db = require('../db');
 const utils = require('../Utils');
 const FormData = require('form-data');
 const axios = require('axios');
+const { log } = require('console');
 
 async function checking(req, res, next) {
     if (!req.session.mid) {
@@ -41,7 +42,7 @@ router.get('/write', checking, async function(req, res, next) {
 });
 
 router.post('/write', checking, async function(req, res, next) {
-    const return_url = req.body.return_url;
+    const return_url = req.query.return_url;
     const table = req.query.table;
     const idx = req.body.idx;
     delete req.body.idx;
@@ -148,6 +149,7 @@ router.get('/add_code', checking, async function(req, res, next) {
 
     var arr = await utils.queryResult(sql, params);
     var data = arr[0];
+
     if (data) {
         console.log(data.code1.length);
         if (data.code1.length == 2) {
@@ -159,7 +161,7 @@ router.get('/add_code', checking, async function(req, res, next) {
             db.query(`INSERT INTO CODES_tbl SET code1 = ?, name1 = ?, sort1 = ?`, [code, code, sort]);
 
         } else if (data.code1.length == 4) {
-            sort = eval(data.sort1) - 1;
+            sort = eval(data.sort1) + 1;
             code = data.code1.substr(2, 2);
             code = eval(code) + 1;
             if (code < 10) {
@@ -168,8 +170,17 @@ router.get('/add_code', checking, async function(req, res, next) {
             code = `${parentCode}${code}`;
             db.query(`INSERT INTO CODES_tbl SET code1 = ?, name1 = ?, sort1 = ?`, [code, code, sort]);
         } else if (data.code1.length == 6) {
-            sort = eval(data.sort1) - 1;
+            sort = eval(data.sort1) + 1;
             code = data.code1.substr(4, 2);
+            code = eval(code) + 1;
+            if (code < 10) {
+                code = `0${code}`;
+            }
+            code = `${parentCode}${code}`;
+            db.query(`INSERT INTO CODES_tbl SET code1 = ?, name1 = ?, sort1 = ?`, [code, code, sort]);
+        } else if (data.code1.length == 8) {
+            sort = eval(data.sort1) + 1;
+            code = data.code1.substr(6, 2);
             code = eval(code) + 1;
             if (code < 10) {
                 code = `0${code}`;
@@ -179,18 +190,23 @@ router.get('/add_code', checking, async function(req, res, next) {
         }
     } else {
         if (parentCode == 'root') {
-            sort = 999;
+            sort = 1;
             code = '01';
         } else if (parentCode.length == 2) {
-            sort = 999;
+            sort = 1;
             code = `${parentCode}01`;
         } else if (parentCode.length == 4) {
-            sort = 999;
+            sort = 1;
+            code = `${parentCode}01`;
+        } else if (parentCode.length == 6) {
+            sort = 1;
             code = `${parentCode}01`;
         } else {
             return;
         }
-        db.query(`INSERT INTO CODES_tbl SET code1 = ?, name1 = ?, sort1 = ?`, [code, code, sort]);
+        var sql = `INSERT INTO CODES_tbl SET code1 = ?, name1 = ?, sort1 = ?`;
+        var rs = await utils.queryResult(sql, [code, code, sort]);
+        console.log(rs);
     }
 
     res.redirect(return_url);

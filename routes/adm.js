@@ -104,6 +104,7 @@ router.get('/logout', function(req, res, next) {
 router.get('/codes/:menu1/:menu2', checking, async function(req, res, next) {
     var step2Arr = [];
     var step3Arr = [];
+    var step4Arr = [];
     var arr = [];
 
     var sql = `SELECT CONCAT(idx, '||',sort1) as data, code1 as id, name1 as text FROM CODES_tbl WHERE LENGTH(code1) = 2 ORDER BY sort1 DESC`;
@@ -119,9 +120,20 @@ router.get('/codes/:menu1/:menu2', checking, async function(req, res, next) {
             step3Arr = await utils.queryResult(sql, [step2.id]);
 
             step2.children = [];
+
             for (step3 of step3Arr) {
+                sql = `SELECT  CONCAT(idx, '||',sort1) as data, code1 as id, name1 as text FROM CODES_tbl WHERE LEFT(code1, 6) = ? AND LENGTH(code1) = 8 ORDER BY sort1 DESC`;
+                step4Arr = await utils.queryResult(sql, [step3.id]);
+
+                step3.children = [];
+
+                for (step4 of step4Arr) {
+                    step3.children.push(step4);
+                }
+
                 step2.children.push(step3);
             }
+            
             step1.children.push(step2);
         }
     }
@@ -132,7 +144,7 @@ router.get('/codes/:menu1/:menu2', checking, async function(req, res, next) {
         menu2: req.params.menu2,
         data: {
             id: 'root',
-            text: '코드',
+            text: '병동',
             children: arr,
         },
     });

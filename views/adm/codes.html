@@ -15,7 +15,7 @@
         <input name='idx' type="hidden" readonly required/>
         <table class="table table-borderless table-sm table-form">
             <tr>
-                <th width="100">병동</th>
+                <th width="100">코드</th>
                 <td><input name='code1' class='form-control' readonly required/></td>
             </tr>
     
@@ -40,7 +40,7 @@
 
 </div>
 
-<div id="btns" class="position-absolute" style="display: none;">
+<div id="btns" class="position-fixed" style="width: 70px; display: none;">
     <button type="button" class="btn btn-outline-dark btn-sm" onclick="delCode();">✕</button>
     <button type="button" class="btn btn-outline-dark btn-sm" onclick="addCode();">+</button>
 </div>
@@ -80,16 +80,23 @@ $(document).ready(function() {
             $("#save").hide();
         }
 
-        var top = $('#' + data.node.id + '_anchor').offset().top - 3;
-        var left = $('#' + data.node.id + '_anchor').offset().left - 150;
-
-        $("#btns").show();
-        $("#btns").css("top", top);
-        $("#btns").css("left", left);
-
+        if (data.node.id.length < 8) {
+            var top = $('#' + data.node.id + '_anchor').offset().top - 0;
+            var left = $('#' + data.node.id + '_anchor').offset().left + 120;
+            
+            $("#btns").show();
+            $("#btns").css("top", top);
+            $("#btns").css("left", left);
+        } else {
+            $("#btns").hide();
+        }
     });
-
 });
+
+$("#continer").scroll(function() {
+    $("#btns").hide();
+});
+
 
 function addCode() {
     var code1 = $("input[name='code1']").val();

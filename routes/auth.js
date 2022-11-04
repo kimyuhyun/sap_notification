@@ -8,70 +8,83 @@ const moment = require('moment');
 const requestIp = require('request-ip');
 const commaNumber = require('comma-number');
 
-
-async function setLog(req, res, next) {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    var rows;
-    await new Promise(function(resolve, reject) {
-        var sql = `SELECT visit FROM ANALYZER_tbl WHERE ip = ? ORDER BY idx DESC LIMIT 0, 1`;
-        db.query(sql, ip, function(err, rows, fields) {
-            if (!err) {
-                resolve(rows);
-            }
-        });
-    }).then(function(data){
-        rows = data;
-    });
-
-    await new Promise(function(resolve, reject) {
-        var sql = `INSERT INTO ANALYZER_tbl SET ip = ?, agent = ?, visit = ?, created = NOW()`;
-        if (rows.length > 0) {
-            var cnt = rows[0].visit + 1;
-            db.query(sql, [ip, req.headers['user-agent'], cnt], function(err, rows, fields) {
-                resolve(cnt);
-            });
-        } else {
-            db.query(sql, [ip, req.headers['user-agent'], 1], function(err, rows, fields) {
-                resolve(1);
-            });
-        }
-    }).then(function(data) {
-        console.log(data);
-    });
-
-    //현재 접속자 파일 생성
-    var memo = new Date().getTime() + "|S|" + req.baseUrl + req.path;
-    fs.writeFile('./liveuser/'+ip, memo, function(err) {
-        console.log(memo);
-    });
-    //
-    next();
-}
-
-
-
-router.get('/is_memb/:id', setLog, async function(req, res, next) {
+router.get('/manager_login/:id/:pw', async function(req, res, next) {
     const id = req.params.id;
+    const pw = req.params.pw;
+    
+    var sql = `SELECT *, count(*) as cnt FROM MEMB_tbl WHERE id = ?`;
+    var params = [id];
+    var arr = await utils.queryResult(sql, params);
+    var row = arr[0];
+    console.log(row);
 
-    //이미 회원인지 체크
-    await new Promise(function(resolve, reject) {
-        const sql = `SELECT *, count(*) as cnt FROM MEMB_tbl WHERE id = ?`;
-        db.query(sql, id, function(err, rows, fields) {
-            console.log(rows);
-            if (!err) {
-                resolve(rows[0]);
-            } else {
-                console.log(err);
-                res.send(err);
-                return;
-            }
+    if (row.cnt == 0) {
+        res.send({
+            code: 0,
+            msg: '일치하는 아이디가 없습니다.',
         });
-    }).then(async function(data) {
-        res.send(data);
-    });
+        return;
+    }
 
+    //패스워드 암호화!
+    sql = `SELECT PASSWORD(?) as pw FROM dual`;
+    var params = [pw];
+    var arr = await utils.queryResult(sql, params);
+    var row2 = arr[0];
+
+    if (row.pass1 == row2.pw) {
+        res.send({
+            code: 1,
+            msg: `${row.name1}님 로그인 되었습니다.`,
+            idx: row.idx,
+            id: row.id,
+            name1: row.name1,
+        });
+    } else {
+        res.send({
+            code: 0,
+            msg: '아이디/패스워드가 일치하지 않습니다.',
+        });
+    }
 });
 
+
+router.get('/patient_login/:name1/:patient_num', async function(req, res, next) {
+    const name1 = req.params.name1;
+    const patient_num = req.params.patient_num;
+
+    var sql = `SELECT *, count(*) as cnt FROM PATIENT_tbl WHERE patient_num = ?`;
+    var params = [patient_num];
+    var arr = await utils.queryResult(sql, params);
+    var row = arr[0];
+    
+    if (row.cnt == 0) {
+        res.send({
+            code: 0,
+            msg: '등록된 환자 등록번호가 없습니다.',
+        });
+        return;
+    }
+
+    if (row.name1 == name1) {
+        res.send({
+            code: 1,
+            msg: `${row.name1}님 로그인 되었습니다.`,
+            gender: row.gender == 1 ? '남' : '여',
+            age: `${utils.getAge(row.byear)}세`,
+            bed_code: row.bed_code,
+            idx: row.idx,
+            id: row.id,
+            name1: row.name1,
+            patient_num: row.patient_num,
+        });
+    } else {
+        res.send({
+            code: 0,
+            msg: '등록된 환자 이름이 다릅니다.',
+        });
+    }
+});
 
 
 module.exports = router;

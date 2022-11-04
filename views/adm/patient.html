@@ -1,0 +1,178 @@
+<%-include('header.html')%>
+
+<div class='card shadow mb-5'>
+    <div class='card-body'>
+        <form name="frm1" method="GET" action="/crud/delete" onsubmit="return false;">
+            <input type="hidden" name="table" value="BOARD_tbl"/>
+            <input type="hidden" name="return_url" value="/adm/board/<%=data.board_id%>/<%=data.pageNum%>/<%=menu1%>/<%=menu2%>?search=<%=data.search%>&orderby=<%=data.orderby%>"/>
+
+            <div class="d-flex flex-row justify-content-end mb-2">
+                <div class="input-group w-50">
+                    <input type="text" id="search_query" class="form-control" placeholder="검색어를 입력해주세요" value="<%=data.search%>" onkeyup="enterkey();">
+                    <button class="btn btn-primary" type="button" onclick="search()" >검색</button>
+                    <a href="/adm/board/<%=data.board_id%>/1/<%=menu1%>/<%=menu2%>" class="btn btn-outline-dark" type="button">목록</a>
+                </div>
+            </div>
+
+            <table class="table bg-white">
+                <colgroup>
+                    <col width="60px" />
+                    <col width="140px" />
+                    <col width="300px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="*" />
+                </colgroup>
+                <thed>
+                    <tr>
+                        <th class="text-center" ><input type="checkbox" onclick="allCheck(this)"></th>
+                        <th class="text-center text-nowrap">환자번호</th>
+                        <th class="text-center text-nowrap">호실</th>
+                        <th class="text-center text-nowrap">성함</th>
+                        <th class="text-center text-nowrap">성별</th>
+                        <th class="text-center text-nowrap">나이</th>
+                        <th class="text-center text-nowrap">메모</th>
+                    </tr>
+                </thed>
+                <tbody>
+                    <% for (row of data.list) { %>        
+                    <tr>
+                        <td class="text-center"><input type="checkbox" name="idx[]" value="<%= row.idx %>"></td>
+                        <td class="text-center text-nowrap"><%=row.patient_num%></td>
+                        <td class="text-center"><%=row.code1%></td>
+                        <td class="text-center text-nowrap"><%=row.name1%></td>
+                        <td class="text-center text-nowrap"><%=row.gender == 1 ? '남' : '여'%></td>
+                        <td class="text-center text-nowrap"><%=row.byear%></td>
+                        <td class="text-left text-nowrap"><%=row.memo%></td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-danger" onclick="del();">삭제</button>
+                <button
+                    type="button" class="btn btn-primary"
+                    data-bs-toggle="modal" data-bs-target="#staticBackdrop"
+                    onclick="openPopup('/crud/write', '');">등록</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<% if (data.list.length != 0) { %>
+<div class="d-flex justify-content-center">
+    <ul class="pagination">
+        <li class="page-item <% if(data.pnPrev == 0) { %> disabled <% } %>">
+            <a class="page-link" <% if (data.pageNum > 1) { %> href="Javascript:page(<%=data.pnPrev%>);" <% } %>>
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        <% for (var i = data.pnStart; i <= data.pnEnd; i++) { %>
+        <li class="page-item <% if(i == data.pageNum) { %> active <% } %>">
+            <a class="page-link" href="Javascript:page(<%=i%>);"><%=i%></a>
+        </li>
+        <% } %>
+        <li class="page-item <% if(data.pnNext == 0) { %> disabled <% } %>">
+            <a class="page-link" <% if (data.pageNum < data.pnTotal){ %> href="Javascript:page(<%=data.pnNext%>);" <% } %>>
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<% } %>
+
+<%- include('footer.html') %>
+
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light" id="write_form">
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="$('#submit').trigger('click');">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light" id="write_form">
+                
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="$('#submit').trigger('click');">저장</button>
+            </div>
+        </div>
+    </div> -->
+</div>
+
+
+<script>
+function allCheck(obj) {
+    $("input[name='idx[]']").prop('checked', obj.checked);
+}
+
+function enterkey() {
+    if (window.event.keyCode == 13) {
+       // 엔터키가 눌렸을 때 실행하는 반응
+        search();
+    }
+}
+
+function search() {
+    var search = $("#search_query").val();
+    location.href = '/adm/board/<%=data.board_id%>/1/<%=menu1%>/<%=menu2%>?search=' + search + '&orderby=<%=data.orderby%>';
+
+}
+
+function orderby(orderby) {
+    location.href = '/adm/board/<%=data.board_id%>/1/<%=menu1%>/<%=menu2%>?search=<%=data.search%>&orderby=' + orderby;
+}
+
+function page(page) {
+    location.href = '/adm/board/<%=data.board_id%>/' + page + '/<%=menu1%>/<%=menu2%>?search=<%=data.search%>&orderby=<%=data.orderby%>';
+}
+
+function del() {
+    if ($("input:checkbox[name='idx[]']:checked").length <= 0) {
+        alert('체크된 항목이 없습니다.');
+        return;
+    }
+
+    if (confirm('삭제하시겠습니까?')) {
+        document.frm1.submit();
+    }
+}
+
+function openPopup(url, idx) {
+    var return_url = '/adm/board/<%=data.board_id%>/1/<%=menu1%>/<%=menu2%>?search=<%=data.search%>&orderby=<%=data.orderby%>';
+    
+    $.ajax({
+        url: url,
+        method: 'get',
+        data: { 
+            idx: idx,
+            return_url: return_url,
+            table: 'BOARD_tbl',
+            board_id: '<%=data.board_id%>',            
+            view: '<%=data.board_id%>',
+        },
+        dataType: "html",
+        success: function(result) {
+            $("#write_form").html(result);
+        }
+    });
+
+}
+</script>
