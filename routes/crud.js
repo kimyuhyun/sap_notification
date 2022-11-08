@@ -42,8 +42,8 @@ router.get('/write', checking, async function(req, res, next) {
 });
 
 router.post('/write', checking, async function(req, res, next) {
-    const return_url = req.query.return_url;
     const table = req.query.table;
+    const return_url = req.body.return_url;
     const idx = req.body.idx;
     delete req.body.idx;
     delete req.body.return_url;
@@ -212,5 +212,17 @@ router.get('/add_code', checking, async function(req, res, next) {
     res.redirect(return_url);
 });
 
+router.get('/del_code', async function(req, res, next) {
+    const return_url = req.query.return_url;
+    const table = req.query.table;
+    const idx = req.query.idx;
+    db.query(`DELETE FROM ?? WHERE idx = ?`, [table, idx]);
+
+    if (return_url) {
+        res.redirect(return_url);
+    } else {
+        res.send('1');
+    }
+});
 
 module.exports = router;

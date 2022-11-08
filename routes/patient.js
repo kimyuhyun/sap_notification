@@ -4,6 +4,7 @@ const fs = require('fs');
 const db = require('../db');
 const utils = require('../Utils');
 const moment = require('moment');
+const { log } = require('console');
 
 async function checking(req, res, next) {
     if (!req.session.mid) {
@@ -72,8 +73,29 @@ router.get('/:page/:menu1/:menu2', checking, async function(req, res, next) {
     console.log(sql, records);
     var list = [];
     for (row of arr) {
+        row.age = utils.getAge(row.byear);
         row.created = utils.utilConvertToMillis(row.created);
         row.modified = utils.utilConvertToMillis(row.modified);
+
+        var buildingCode = row.bed_code.substr(0,4);
+        var roomCode = row.bed_code.substr(0,6);
+        var bedCode = row.bed_code.substr(0,8);
+
+        var tmp = ``;
+
+        sql = `
+            SELECT
+                (SELECT name1 FROM CODES_tbl WHERE code1 = ?) as building_name,
+                (SELECT name1 FROM CODES_tbl WHERE code1 = ?) as room_name,
+                (SELECT name1 FROM CODES_tbl WHERE code1 = ?) as bed_name
+            FROM dual 
+        `;
+        var data = await utils.queryResult(sql, [buildingCode, roomCode, bedCode]);
+        var obj = data[0];
+        tmp += `${obj.building_name} > ${obj.room_name} > ${obj.bed_name}`;
+
+        row.bed_name = tmp;
+
         list.push(row);
     }
 
@@ -89,7 +111,6 @@ router.get('/:page/:menu1/:menu2', checking, async function(req, res, next) {
         data,
     });
 });
-
 
 
 module.exports = router;

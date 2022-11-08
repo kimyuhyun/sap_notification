@@ -1,0 +1,62 @@
+<form name="frm2" method="post" action="/crud/write?table=PATIENT_tbl" >
+    <input type="hidden" name="return_url" value="<%=return_url%>"/>
+    <input type="hidden" name="idx" value="<%=row.idx%>"/>
+            
+    <table class="table table-borderless table-sm table-form">
+        <tr>
+            <th width="100">이름</th>
+            <td><input name='name1' class='form-control' required value="<%=row.name1%>"/></td>
+        </tr>
+
+        <tr>
+            <th>등록번호</th>
+            <td><input name='patient_num' type="number" class='form-control' required value="<%=row.patient_num%>"/></td>
+        </tr>
+
+        <tr>
+            <th>성별</th>
+            <td>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="gender" id="gender1" value="1" checked>
+                    <label class="form-check-label" for="gender1">남</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="gender" id="gender2" value="2">
+                    <label class="form-check-label" for="gender2">여</label>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <th>생년월일</th>
+            <td><input name='byear' class='form-control' type="number" value="<%=row.byear%>"/></td>
+        </tr>
+
+        <tr>
+            <th>manager_id</th>
+            <td><input name='manager_id' class='form-control' value="<%=row.manager_id%>"/></td>
+        </tr>
+
+        <tr>
+            <th>device_id</th>
+            <td><input name='device_id' class='form-control' value="<%=row.device_id%>"/></td>
+        </tr>
+
+        <tr>
+            <th>bed_code</th>
+            <td><input name='bed_code' class='form-control' value="<%=row.bed_code%>"/></td>
+        </tr>
+
+        <tr>
+            <th>메모</th>
+            <td><textarea class="form-control" name="memo" rows="5"><%=row.memo%></textarea></td>
+        </tr>
+
+        
+    </table>
+    <input type="submit" id="submit" style="display: none;"/>
+</form>
+
+
+
+

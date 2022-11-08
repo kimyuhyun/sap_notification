@@ -11,8 +11,9 @@
     </div>
 
    
-    <form method="POST" class="w-100" action="/crud/write?table=CODES_tbl&return_url=/adm/codes/<%=menu1%>/<%=menu2%>">
+    <form method="POST" class="w-100" action="/crud/write?table=CODES_tbl">
         <input name='idx' type="hidden" readonly required/>
+        <input name='return_url' type="hidden" value="/adm/codes/<%=menu1%>/<%=menu2%>" />
         <table class="table table-borderless table-sm table-form">
             <tr>
                 <th width="100">코드</th>
@@ -106,7 +107,7 @@ function addCode() {
 function delCode() {
     if (confirm("삭제하시겠습니까?")) {
         var idx = $("input[name='idx']").val();
-        location.href = `/crud/delete?idx=${idx}&table=CODES_tbl&return_url=/adm/codes/<%=menu1%>/<%=menu2%>`;
+        location.href = `/crud/del_code?idx=${idx}&table=CODES_tbl&return_url=/adm/codes/<%=menu1%>/<%=menu2%>`;
     }
 }
 </script>
