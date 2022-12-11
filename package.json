@@ -1,6 +1,6 @@
 {
-    "name": "MVP",
-    "version": "3.0.0",
+    "name": "sap_notification",
+    "version": "1.0.0",
     "description": "",
     "main": "app.js",
     "dependencies": {
