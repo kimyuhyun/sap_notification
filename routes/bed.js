@@ -151,4 +151,17 @@ router.get('/get_sap_detail/:code1', setLog, async function(req, res, next) {
     });
 });
 
+
+router.get('/update_sap_data/:bed_code', setLog, async function(req, res, next) {
+    const bed_code = req.params.bed_code;
+    const cur = req.query.cur;
+    const all = req.query.all;
+
+    var sql = `UPDATE PATIENT_tbl SET cur_cc = ?, all_cc = ?, modified = NOW() WHERE bed_code = ?`;
+    var params = [cur, all, bed_code];
+    var arr = await utils.queryResult(sql, params);
+    
+    res.send(arr);
+});
+
 module.exports = router;

@@ -97,4 +97,7 @@ router.get('/set_alarm_read/:idx', setLog, async function(req, res, next) {
     res.send(arr);
 });
 
+
+
+
 module.exports = router;
