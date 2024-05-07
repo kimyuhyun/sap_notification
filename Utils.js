@@ -79,46 +79,81 @@ class Utils {
     }
 
     utilConvertToMillis(time) {
-        var time = new Date(time).getTime() / 1000;
-        var currentTime = Math.floor(new Date().getTime()/1000);
-        var inputTime = time;
-        var diffTime = currentTime - inputTime;
-        var postTime;
-        switch(true) {
-            case diffTime < 60 :
-                postTime = '방금';
-                break;
-            case diffTime < 3600 :
-                postTime = parseInt(diffTime / 60) + '분 전';
-                break;
-            case diffTime < 86400 :
-                postTime = parseInt(diffTime / 3600) + '시간 전';
-                break;
-            case diffTime < 604800 :
-                postTime = parseInt(diffTime / 86400) + '일 전';
-                break;
-            case diffTime > 604800 :
-                var date = new Date(time * 1000);
-                var month = eval(date.getMonth() + 1);
-                var day = date.getDate();
-                if (eval(date.getMonth() + 1) < 10) {
-                    month = "0" + eval(date.getMonth() + 1);
-                }
-                if (date.getDate() < 10) {
-                    day = "0" + date.getDate()
-                }
-                postTime = date.getFullYear() + "-" + month + "-" + day;
-                break;
-            default: 
-                postTime = time;
+        const dateTime = new Date(time).getTime();
+        const nowTime = new Date().getTime();
+        const differenceInSeconds = (nowTime - dateTime) / 1000; // 초 단위로 차이 계산
+
+        if (differenceInSeconds <= 60) {
+            return "방금";
         }
-        return postTime;
+
+        const differenceInMinutes = Math.floor(differenceInSeconds / 60);
+        if (differenceInMinutes <= 60) {
+            return `${differenceInMinutes}분 전`;
+        }
+
+        const differenceInHours = Math.floor(differenceInMinutes / 60);
+        if (differenceInHours <= 24) {
+            return `${differenceInHours}시간 전`;
+        }
+
+        const differenceInDays = Math.floor(differenceInHours / 24);
+        if (differenceInDays <= 7) {
+            return `${differenceInDays}일 전`;
+        }
+
+        const differenceInWeeks = Math.floor(differenceInDays / 7);
+        if (differenceInWeeks <= 4) {
+            return `${differenceInWeeks}주 전`;
+        }
+
+        const differenceInMonths = Math.floor(differenceInDays / 30);
+        if (differenceInMonths <= 12) {
+            return `${differenceInMonths}달 전`;
+        }
+
+        const differenceInYears = Math.floor(differenceInDays / 365);
+        return `${differenceInYears}년 전`;
     }
 
     getAge(byear) {
         var y = new Date().getFullYear();
         var age = y - byear;
         return age;
+    }
+
+
+    async sendPush(id, msg) {
+        var sql = "SELECT fcm FROM MEMB_tbl WHERE id = ?";
+        var arr = await this.queryResult(sql, [id]);
+        var fcmArr = [];
+        for (const row of arr) {
+            fcmArr.push(row.fcm);
+        }
+
+        var fields = {};
+        fields["notification"] = {};
+        fields["data"] = {};
+
+        fields["registration_ids"] = fcmArr;
+        fields['notification']['title'] = '수액알림';
+        fields["notification"]["body"] = msg;
+
+        fields["data"]["title"] = '수액알림';
+        fields["data"]["body"] = msg;
+
+        fields["priority"] = "high";
+
+        const { data } = await axios({
+            method: "post",
+            url: "https://fcm.googleapis.com/fcm/send",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `key=${process.env.FCM_SERVER_KEY}`,
+            },
+            data: JSON.stringify(fields),
+        });
+        return data;
     }
 }
 

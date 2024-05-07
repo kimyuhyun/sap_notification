@@ -11,6 +11,7 @@ const commaNumber = require('comma-number');
 router.get('/manager_login/:id/:pw', async function(req, res, next) {
     const id = req.params.id;
     const pw = req.params.pw;
+    const fcm = req.query.fcm;
     
     var sql = `SELECT *, count(*) as cnt FROM MEMB_tbl WHERE id = ?`;
     var params = [id];
@@ -33,6 +34,9 @@ router.get('/manager_login/:id/:pw', async function(req, res, next) {
     var row2 = arr[0];
 
     if (row.pass1 == row2.pw) {
+        sql = `UPDATE MEMB_tbl SET fcm = ? WHERE id = ?`;
+        await utils.queryResult(sql, [fcm, id]);
+
         res.send({
             code: 1,
             msg: `${row.name1}님 로그인 되었습니다.`,

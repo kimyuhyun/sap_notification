@@ -80,17 +80,21 @@ async function setLog(req, res, next) {
 router.get('/get_alarms/:id', setLog, async function(req, res, next) {
     const id = req.params.id;
 
-    var sql = `SELECT * FROM ALARM_tbl WHERE target_id = ?`;
+    var sql = `SELECT * FROM ALARM_tbl WHERE target_id = ? and is_del = 0 ORDER BY created DESC`;
     var params = [id];
     var arr = await utils.queryResult(sql, params);
-    
+
+    for (const obj of arr) {
+        obj.created = utils.utilConvertToMillis(obj.created);
+    }
+    console.log(arr);
     res.send(arr);
 });
 
-router.get('/set_alarm_read/:idx', setLog, async function(req, res, next) {
+router.get('/set_alarm_delete/:idx', setLog, async function(req, res, next) {
     const idx = req.params.idx;
 
-    var sql = `UPDATE ALARM_tbl SET is_read = 1 WHERE idx = ?`;
+    var sql = `UPDATE ALARM_tbl SET is_del = 1 WHERE idx = ?`;
     var params = [idx];
     var arr = await utils.queryResult(sql, params);
     

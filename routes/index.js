@@ -21,4 +21,11 @@ router.get('/', async function(req, res, next) {
     });
 });
 
+
+router.get('/push_test', async function(req, res, next) {
+    const id = req.query.id;
+    const result = utils.sendPush(id, '푸시테스트 바디 입니다.');
+    res.json(result);
+});
+
 module.exports = router;

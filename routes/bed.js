@@ -78,7 +78,15 @@ async function setLog(req, res, next) {
 }
 
 
-
+router.get('/', async function(req, res, next) {
+    const bed_code = "01020304";
+    const code_depth1 = bed_code.substring(0, 2);
+    const code_depth2 = bed_code.substring(2, 4);
+    const code_depth3 = bed_code.substring(4, 6);
+    const code_depth4 = bed_code.substring(6, 8);
+    console.log(code_depth1, code_depth2, code_depth3, code_depth4);
+    res.send("ASD");
+});
 
 router.get('/get_building', setLog, async function(req, res, next) {
     var sql = `SELECT * FROM CODES_tbl WHERE LENGTH(code1) = 2 ORDER BY sort1 ASC`;
@@ -156,6 +164,56 @@ router.get('/update_sap_data/:bed_code', setLog, async function(req, res, next) 
     const bed_code = req.params.bed_code;
     const cur = req.query.cur;
     const all = req.query.all;
+
+    // 여기서 푸시 로직을 만들면 된다!
+    // cur_cc 가 50이하인 경우 ALARM_tbl 에 저장하고 푸시를 보낸다.
+    if (eval(cur) < 50) {
+        var sql = `SELECT manager_id FROM PATIENT_tbl WHERE bed_code = ?`;
+        var arr = await utils.queryResult(sql, [bed_code]);
+        var obj = arr[0];
+
+        const manager_id = obj.manager_id;
+
+        const code_depth1 = bed_code.substring(0, 2);
+        const code_depth2 = bed_code.substring(0, 4);
+        const code_depth3 = bed_code.substring(0, 6);
+        const code_depth4 = bed_code.substring(0, 8);
+
+        var depth1 = "";
+        var depth2 = "";
+        var depth3 = "";
+        var depth4 = "";
+
+        sql = `SELECT name1 FROM CODES_tbl WHERE code1 = ?`;
+        arr = await utils.queryResult(sql, [code_depth1]);
+        obj = arr[0];
+        depth1 = obj.name1;
+
+        sql = `SELECT name1 FROM CODES_tbl WHERE code1 = ?`;
+        arr = await utils.queryResult(sql, [code_depth2]);
+        obj = arr[0];
+        depth2 = obj.name1;
+
+        sql = `SELECT name1 FROM CODES_tbl WHERE code1 = ?`;
+        arr = await utils.queryResult(sql, [code_depth3]);
+        obj = arr[0];
+        depth3 = obj.name1;
+
+        sql = `SELECT name1 FROM CODES_tbl WHERE code1 = ?`;
+        arr = await utils.queryResult(sql, [code_depth4]);
+        obj = arr[0];
+        depth4 = obj.name1;
+
+        const message = `${depth1} ${depth2} ${depth3} ${depth4} 환자의 수액을 확인해주세요.`;
+        const title = '수액확인';
+
+        sql = `INSERT INTO ALARM_tbl SET target_id = ?, title = ?, memo = ?, created = NOW()`;
+        await utils.queryResult(sql, [manager_id, title, message]);
+
+        const push_result = await utils.sendPush(manager_id, message);
+        console.log(push_result);
+        
+    }
 
     var sql = `UPDATE PATIENT_tbl SET cur_cc = ?, all_cc = ?, modified = NOW() WHERE bed_code = ?`;
     var params = [cur, all, bed_code];
